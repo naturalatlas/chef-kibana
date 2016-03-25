@@ -2,6 +2,12 @@
 
 include_recipe 'kibana'
 
+execute "chown-kibana" do
+  command "chown -R kibana:kibana #{node['kibana']['base_dir']}"
+  user "root"
+  action :nothing
+end
+
 if node['kibana']['install_method'] == 'release'
   ark 'kibana' do
     url node['kibana']['url']
@@ -9,6 +15,7 @@ if node['kibana']['install_method'] == 'release'
     checksum node['kibana']['kibana4_checksum']
     path node['kibana']['base_dir']
     home_dir File.join(node['kibana']['base_dir'], 'current')
+    notifies :run, 'execute[chown-kibana]', :immediately
   end
   config_path = 'current/config/kibana.yml'
 else
